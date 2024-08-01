@@ -1,7 +1,27 @@
 import { useDispatch } from "react-redux";
 import { toggleMenu } from "../utils/appSlice";
+import { useEffect, useState } from "react";
+import { YOUTUBE_SEARCH_API } from "../utils/const";
 
 const Head = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestion, setSuggestion] = useState([]);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  useEffect(() => {
+    // MAke an api call after every key press
+    // But if the diff between 2 api call is <200ms
+    // Decline the API Call
+    const timer = setTimeout(() => getSearchSuggestions(), 200);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+  const getSearchSuggestions = async () => {
+    const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
+    const json = await data.json();
+    setSuggestion(json[1]);
+    console.log(json[1]);
+  };
   const dispatch = useDispatch();
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());
@@ -24,13 +44,31 @@ const Head = () => {
         </a>
       </div>
       <div className="col-span-10 px-10">
-        <input
-          className="w-1/2 border border-gray-400 p-2 rounded-l-full"
-          type="text"
-        />
-        <button className="border border-gray-400 py-2 px-5 bg-gray-100 rounded-r-full">
-          🔍
-        </button>
+        <div>
+          <input
+            className="w-1/2 border border-gray-400 p-2 rounded-l-full "
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowSuggestion(true)}
+            onBlur={() => setShowSuggestion(false)}
+            onScroll={() => setShowSuggestion(false)}
+          />
+          <button className="border border-gray-400 py-2 px-5 bg-gray-100 rounded-r-full">
+            🔍
+          </button>
+        </div>
+        {showSuggestion && (
+          <div className="fixed bg-white py-2 px-5 w-[28rem] shadow-lg rounded-lg border border-gray-100">
+            <ul>
+              {suggestion.map((s) => (
+                <li key={s} className="py-2 shadow-sm hover:bg-gray-100">
+                  {"🔍" + s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div>
         <img
