@@ -7,6 +7,7 @@ const Head = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestion, setSuggestion] = useState([]);
   const [showSuggestion, setShowSuggestion] = useState(false);
+
   useEffect(() => {
     // MAke an api call after every key press
     // But if the diff between 2 api call is <200ms
@@ -20,12 +21,22 @@ const Head = () => {
     const data = await fetch(YOUTUBE_SEARCH_API + searchQuery);
     const json = await data.json();
     setSuggestion(json[1]);
-    console.log(json[1]);
   };
   const dispatch = useDispatch();
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());
   };
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowSuggestion(false);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   return (
     <div className="grid grid-flow-col p-5 m-2 shadow-lg">
       <div className="flex col-span-1 ">
@@ -52,14 +63,13 @@ const Head = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setShowSuggestion(true)}
             onBlur={() => setShowSuggestion(false)}
-            onScroll={() => setShowSuggestion(false)}
           />
           <button className="border border-gray-400 py-2 px-5 bg-gray-100 rounded-r-full">
             🔍
           </button>
         </div>
         {showSuggestion && (
-          <div className="fixed bg-white py-2 px-5 w-[28rem] shadow-lg rounded-lg border border-gray-100">
+          <div className="fixed bg-white py-2 px-5 w-[28rem] shadow-lg rounded-lg border border-gray-100 max-h-60 overflow-y-auto">
             <ul>
               {suggestion.map((s) => (
                 <li key={s} className="py-2 shadow-sm hover:bg-gray-100">
